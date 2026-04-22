@@ -1,43 +1,31 @@
 ---
 name: fresh-docs
 description: >
-  Query Context7 for current library/framework/SDK docs before writing code.
-  TRIGGER: about to write, modify, or review code that imports or calls into
-  any external library, framework, SDK, CLI tool, or cloud service. Applies
-  to well-known libraries too (React, Next.js, Tailwind, Django, etc.) — LLM
-  training data is stale.
+  Query Context7 for current library/framework/SDK docs before writing or modifying
+  code that uses them. TRIGGER: about to write, modify, or review code that imports
+  or calls into an external library, framework, SDK, CLI tool, or cloud service —
+  including well-known ones (React, Next.js, Tailwind, Django, etc.) where stale
+  training data produces silently wrong code.
 ---
 
 # devforge:fresh-docs
 
-## The rule
+devforge gate: superpowers does not cover library-docs lookup. This skill does.
 
-Before writing code against ANY external API surface:
+## Rule
 
-1. `mcp__plugin_context7_context7__resolve-library-id` with library name + question.
-2. Pick best match in `/org/project` format (prefer higher trust score, higher snippet count, exact name match; version-specific IDs when version is known).
-3. `mcp__plugin_context7_context7__query-docs` with that ID and the **full** question (not one word).
-4. Implement against the returned docs.
+1. `mcp__plugin_context7_context7__resolve-library-id` with library name + specific question.
+2. Pick best `/org/project` match (trust score, snippet count, exact name match, version-specific when relevant).
+3. `mcp__plugin_context7_context7__query-docs` with that ID and the full question.
+4. Write the code against the returned docs.
 
-## When to skip
+## Skip only when
 
-Only these:
 - Pure business logic with no external API surface.
-- Refactoring (semantics unchanged).
+- Refactors with unchanged semantics.
 - Debugging your own business logic.
-- General programming concepts.
+- Language-level or general programming questions.
 
-Everything else — including libraries you "know well" — goes through Context7.
+## Fallback if MCP is missing
 
-## Fallback
-
-If Context7 MCP is unavailable:
-- `WebFetch` on the official docs URL.
-- Label the answer `[warning: docs fetched via WebFetch, may be cached]`.
-- Never fill in from memory.
-
-## Why this is rigid
-
-"I know this API" is the most common source of silently wrong code. APIs change between minor versions. Defaults change. Deprecations appear. Confidence is not a substitute for current documentation.
-
-See `core/fresh-docs.md` for the full rationale.
+`WebFetch` the official docs URL, label the output `[warning: may be stale]`. Never fill from memory.

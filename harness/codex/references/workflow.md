@@ -1,67 +1,51 @@
-# devforge workflow — 9 steps
+# devforge workflow — dispatch table
 
-Single development methodology. Applies to every task without exceptions.
+This plugin does NOT restate the superpowers methodology. Every step below **invokes** the corresponding superpowers skill. The skill owns the discipline. devforge only adds three things superpowers doesn't cover: beads bookkeeping, Context7 gating, and a Playwright UI-proof gate.
 
-## Mental model
+## What devforge adds, and only this
 
-| Plugin | Role |
-|--|--|
-| beads | **WHAT** — tasks and their order |
-| superpowers | **HOW** — methodology (brainstorm, plan, TDD, debug, review) |
-| context7 | **WITH WHAT** — the current APIs we write against |
-| playwright | **PROOF** — material evidence that the UI works before merge |
+| Add-on | Skill | Covers |
+|--|--|--|
+| beads | — (CLI calls + `bd prime` hooks) | WHAT: task creation, claim, close, dependency edges |
+| Context7 | `devforge:fresh-docs` | WITH WHAT: current library docs before any external-library code |
+| Playwright | `devforge:ui-verification` | PROOF: browser-level smoke check of critical UI paths at step 7 |
+
+Anything else — TDD, debugging, planning, review, worktrees, parallel agents, verification — lives inside superpowers. Invoke the skill. Do not paraphrase it.
 
 ## The flow
 
-```
-1. EPIC       → bd create -t epic "Goal"
-2. BRAINSTORM → superpowers:brainstorming
-3. PLAN       → superpowers:writing-plans (2-5 min subtasks)
-4. SUBTASKS   → bd create + bd dep add (parent-child / blocks)
-5. ISOLATE    → superpowers:using-git-worktrees (non-trivial work)
-6. IMPLEMENT  → per subtask: RED → GREEN → REFACTOR → commit → bd close
-7. VERIFY     → superpowers:verification-before-completion
-              + devforge:ui-verification (IF UI code changed)
-8. REVIEW     → superpowers:requesting-code-review
-9. FINISH     → superpowers:finishing-a-development-branch
-              → bd close <epic-id>
-```
+| # | Step | Invoke | devforge bookkeeping |
+|--|--|--|--|
+| 1 | Create epic | — | `bd create -t epic "<goal>"` |
+| 2 | Brainstorm | `superpowers:brainstorming` | — |
+| 3 | Plan | `superpowers:writing-plans` | — |
+| 4 | Decompose | — | `bd create` per subtask + `bd dep add` (parent-child / blocks) |
+| 5 | Isolate | `superpowers:using-git-worktrees` | — |
+| 6 | Implement (per subtask) | `superpowers:test-driven-development` | `bd update <id> --claim` → TDD cycle → commit → `bd close <id>`; invoke `devforge:fresh-docs` before any external library use |
+| 6b | If anything breaks | `superpowers:systematic-debugging` | — |
+| 6c | Independent parallel work | `superpowers:dispatching-parallel-agents` / `subagent-driven-development` | — |
+| 7 | Verify | `superpowers:verification-before-completion` | + `devforge:ui-verification` if UI code was touched |
+| 8 | Review | `superpowers:requesting-code-review` → on reply, `superpowers:receiving-code-review` | — |
+| 9 | Finish branch | `superpowers:finishing-a-development-branch` | `bd close <epic-id>` |
 
-## Cross-cutting rules
-
-- **No production code without a failing test first.** Ever. See `tdd.md`.
-- **No completion claims without running the verification command.** Evidence before assertions.
-- **No work without a beads task.** Side quests → `bd create -t bug` + `bd dep add new current --type discovered-from`.
-- **Before writing any code against an external library, query Context7.** See `fresh-docs.md`.
-- **If UI code changed, `ui-verification` is mandatory before closing the epic.** See `ui-verification.md`.
-
-## Skill invocation priority
-
-1. **Context7 first** — fresh docs for any library involved.
-2. **Process skills** — brainstorming, debugging, verification.
-3. **Implementation skills** — TDD, code-review.
-4. **UI gate** — `ui-verification` on step 7 if frontend touched.
-
-## Anti-patterns (never)
-
-- Skip brainstorming → "just code it".
-- Write implementation before a failing test.
-- Claim "fixed" / "done" without running and quoting the proving command.
-- Work without a beads task.
-- Run Playwright on a half-done branch (raises false red; Playwright belongs on step 7, not during subtasks).
-- Qualifier language: "should work", "probably fixed", "I think this passes".
-- Trust a subagent's report without running verification yourself.
-- Pull implementation details from memory for a library — memory is stale, Context7 is current.
-
-## Beads dependency types
+## Beads dependency types (bookkeeping reference)
 
 Only `blocks` affects `bd ready`:
 
-| Type | Affects ready? | Use when |
+| Type | Affects ready? | Use for |
 |--|--|--|
-| blocks | yes | Sequential work, technical prerequisite |
-| parent-child | no | Epic → subtask hierarchy |
+| blocks | yes | Sequential/technical prerequisite |
+| parent-child | no | Epic → subtask |
 | related | no | Connected but independent |
 | discovered-from | no | Side quest found during implementation |
 
-Direction: "X needs Y" → `bd dep add X Y`.
+Direction: "X needs Y" → `bd dep add X Y`. Side quests: `bd create -t bug` + `bd dep add new current --type discovered-from`.
+
+## Graceful degradation
+
+| Missing plugin | Fallback |
+|--|--|
+| beads | TodoWrite; suggest install. Flow continues. |
+| superpowers | We refuse to reinterpret the methodology — install superpowers. This plugin is an orchestrator, not a replacement. |
+| Context7 MCP | `devforge:fresh-docs` falls back to WebFetch with a `[may be stale]` label. |
+| Playwright MCP | `devforge:ui-verification` reports `skipped: playwright MCP unavailable`. Never silently passes. |

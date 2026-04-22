@@ -1,48 +1,47 @@
-# UI verification — Playwright gate
+# ui-verification — Playwright gate
+
+Superpowers `verification-before-completion` covers the general "quote the proving command" rule. It does NOT know about browsers. This skill is devforge's browser-level proof for user-facing changes.
 
 ## Scope
 
-Runs **only** at step 7 of the workflow, **only** when UI code changed, **only** after every subtask in the epic is closed.
+Runs **only** at step 7 of the workflow, **only** when UI code changed, **only** after every subtask in the epic is closed and the branch builds.
 
-Playwright is **not** part of the TDD loop in step 6. Component-level behavior is covered by unit/component tests (React Testing Library, Vue Test Utils, etc.) with mocks. Running Playwright mid-branch — before the dev server can be started with a coherent integration — produces false reds and proves nothing.
+Running Playwright during subtasks (mid-branch) is misuse — integration is half-done, the dev server cannot be started coherently, and the result is false-red. Subtask-level UI behavior belongs in unit / component tests (part of `superpowers:test-driven-development`).
 
-## When it triggers
+## Triggers (UI code changed)
 
-Any of:
-- files under `**/components/**`, `**/pages/**`, `**/app/**`, `**/views/**`
-- files matching `*.tsx`, `*.jsx`, `*.vue`, `*.svelte`, `*.astro`
-- style files touched: `*.css`, `*.scss`, `tailwind.config.*`
-- routing config touched
+- `**/components/**`, `**/pages/**`, `**/app/**`, `**/views/**`
+- `*.tsx`, `*.jsx`, `*.vue`, `*.svelte`, `*.astro`
+- `*.css`, `*.scss`, `tailwind.config.*`
+- Routing config
 
 ## Checklist
 
-1. **Build**: run the build command from the project config. Must succeed.
-2. **Dev server**: start it in background from the project config. Wait until the URL responds.
-3. **For each critical UI path** declared in the project config:
-   - `browser_navigate` to the path.
-   - `browser_snapshot` — capture DOM structure.
-   - Perform **one** happy-path interaction that exercises the feature (click, form fill, etc.).
-   - `browser_console_messages` — assert no messages with severity `error`.
-   - `browser_network_requests` — assert no 4xx/5xx on critical endpoints.
-4. **Shut down** the dev server.
+1. **Build** — run the project's build command (from project config). Must exit 0.
+2. **Dev server** — start in background (project config). Poll the URL until it responds.
+3. **Per critical UI path** in project config:
+   - `browser_navigate` → path
+   - `browser_snapshot` — DOM snapshot
+   - One happy-path interaction exercising the feature (`browser_click` / `browser_type`)
+   - `browser_console_messages` — assert no `error`-level messages
+   - `browser_network_requests` — assert no 4xx/5xx on critical endpoints
+4. **Stop** the dev server.
 
-If any step fails, the feature is not done. Return to step 6.
-
-## Tool names
-
-Claude Code: `mcp__plugin_playwright_playwright__browser_navigate`, `..._snapshot`, `..._click`, `..._console_messages`, `..._network_requests`.
-Codex: the same MCP tools, prefixed per `~/.codex/config.toml` entry name.
-
-See `tools-map.md` for the full mapping.
+Any red step → the feature is not done → back to step 6.
 
 ## Project config dependency
 
-`ui-verification` needs two pieces of information from the project:
+This skill needs two declarations from the project-level config (`.devforge/project.md` or a section in the project's `CLAUDE.md` / `AGENTS.md`):
+
 - `dev server`: command + URL
-- `critical UI paths`: list of routes to smoke-test
+- `critical UI paths`: list of routes + short description
 
-Both live in the project-level config file (see harness-specific INSTALL docs for the exact location and format). If the config is missing, this gate is **skipped honestly** with the message `ui-verification skipped: no project config found`. It is not marked as passing.
+Without them: print `ui-verification skipped: no project config` and refuse to mark the epic done. Ask the user to either create the config or acknowledge the skip explicitly.
 
-## Fallback if Playwright MCP unavailable
+## Fallback if Playwright MCP is unavailable
 
-Print `ui-verification skipped: playwright MCP not available; install the @playwright plugin or add it to ~/.codex/config.toml`. Do not claim the UI is verified. Do not silently succeed.
+Print `ui-verification skipped: playwright MCP not installed`. Never claim UI verified. Never silently pass.
+
+## Tool names
+
+See `tools-map.md` for the harness-specific MCP prefix.

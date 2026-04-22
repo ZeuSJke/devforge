@@ -38,7 +38,7 @@ Mental model:
 
 ```
 core/                         platform-agnostic source of truth
-  workflow.md · tdd.md · debugging.md · fresh-docs.md · ui-verification.md
+  workflow.md (dispatch table) · fresh-docs.md (Context7 gate) · ui-verification.md (Playwright gate)
 
 harness/
   claude-code/                Claude Code plugin + installer

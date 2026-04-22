@@ -1,81 +1,47 @@
 ---
 name: unified-workflow
 description: >
-  Mandatory development flow combining beads (tasks), superpowers (methodology),
-  context7 (fresh docs), playwright (UI proof). TRIGGER: at session start, before any
-  task, or when workflow is unclear. Defines the 9-step flow:
-  epic → brainstorm → plan → subtasks → isolate → TDD → verify → review → finish.
+  Dispatch table for the devforge flow. TRIGGER: at session start, before any task, or
+  whenever the next step is unclear. Maps each step to the superpowers skill that owns
+  the discipline for that step, plus beads bookkeeping and devforge's two add-on gates
+  (fresh-docs, ui-verification). Does NOT restate superpowers methodology.
 ---
 
 # devforge:unified-workflow
 
-## The flow
+This skill is a dispatcher, not a methodology. Each step invokes a superpowers skill; superpowers owns the discipline. devforge only contributes beads bookkeeping and two gates (fresh-docs, ui-verification) that cover ground superpowers does not.
 
-```
-1. EPIC       → bd create -t epic "Goal"
-2. BRAINSTORM → superpowers:brainstorming
-3. PLAN       → superpowers:writing-plans
-4. SUBTASKS   → bd create + bd dep add (parent-child / blocks)
-5. ISOLATE    → superpowers:using-git-worktrees
-6. IMPLEMENT  → per subtask: TDD RED→GREEN→REFACTOR → commit → bd close
-7. VERIFY     → superpowers:verification-before-completion
-              + devforge:ui-verification (if UI code changed)
-8. REVIEW     → superpowers:requesting-code-review
-9. FINISH     → superpowers:finishing-a-development-branch
-              → bd close <epic-id>
-```
+## Flow
 
-## Hard rules
-
-- No production code without a failing test first (see `test-driven-development`).
-- Before any external library use → `devforge:fresh-docs` (Context7).
-- UI code changed → `devforge:ui-verification` is mandatory on step 7.
-- No "done" without running the proving command (see `superpowers:verification-before-completion`).
-- All work tracked in beads. Side quests: `bd create -t bug` + `bd dep add new current --type discovered-from`.
-
-## Beads dependency types
-
-Only `blocks` affects `bd ready`:
-
-| Type | Affects ready? | Use for |
+| # | Step | Invoke |
 |--|--|--|
-| blocks | yes | Sequential/technical prerequisite |
-| parent-child | no | Epic → subtask |
-| related | no | Connected but independent |
-| discovered-from | no | Side quest |
+| 1 | Create epic | `bd create -t epic "<goal>"` |
+| 2 | Brainstorm | `superpowers:brainstorming` |
+| 3 | Plan | `superpowers:writing-plans` |
+| 4 | Decompose | `bd create` per subtask + `bd dep add` (parent-child / blocks) |
+| 5 | Isolate | `superpowers:using-git-worktrees` |
+| 6 | Implement (per subtask) | `superpowers:test-driven-development`. Before any external library use → `devforge:fresh-docs`. `bd update <id> --claim` → cycle → `bd close`. |
+| 6b | On failure | `superpowers:systematic-debugging` |
+| 6c | Independent parallel work | `superpowers:dispatching-parallel-agents` / `subagent-driven-development` |
+| 7 | Verify | `superpowers:verification-before-completion`. If UI code changed → also `devforge:ui-verification`. |
+| 8 | Review | `superpowers:requesting-code-review`; on reply `superpowers:receiving-code-review` |
+| 9 | Finish | `superpowers:finishing-a-development-branch`; then `bd close <epic-id>` |
 
-Direction: "X needs Y" → `bd dep add X Y`.
+## What this plugin owns (everything else lives in superpowers)
 
-## Skill priority
+- beads CLI calls and the `bd prime` SessionStart / PreCompact hooks
+- `devforge:fresh-docs` — Context7 gate before external library use
+- `devforge:ui-verification` — Playwright smoke gate on step 7
 
-1. `devforge:fresh-docs` first — whenever a library is involved.
-2. Process skills (`superpowers:brainstorming`, `superpowers:systematic-debugging`, `superpowers:verification-before-completion`).
-3. Implementation skills (`superpowers:test-driven-development`, `superpowers:requesting-code-review`).
-4. `devforge:ui-verification` — step 7, UI changes only.
+## Beads dependencies
+
+Only `blocks` affects `bd ready`. Use `parent-child` for epic→subtask, `related` for independent, `discovered-from` for side quests (`bd create -t bug` + `bd dep add new current --type discovered-from`).
 
 ## Graceful degradation
 
-| Missing plugin | Fallback |
+| Missing | Fallback |
 |--|--|
-| beads | Use TodoWrite. Suggest `/plugin install beads`. |
-| superpowers | Use plan mode + AskUserQuestion for brainstorming. Suggest install. |
-| context7 | WebFetch official docs with `[warning: may be stale]`. |
-| playwright | `ui-verification` reports `skipped: playwright MCP unavailable` — does NOT silently succeed. |
-
-## Anti-patterns
-
-- "Just code it" — skipping brainstorm.
-- Tests written after the code.
-- "Should work" / "probably fixed" / "I think it passes" — qualifiers instead of run output.
-- Running Playwright mid-branch on half-done work (always false-red).
-- Trusting LLM memory for library APIs instead of Context7.
-- Trusting a subagent's report without your own verification run.
-
-## Canonical references
-
-Full methodology lives in plugin-scoped docs:
-- `core/workflow.md` — the flow in full
-- `core/tdd.md` — Red/Green/Refactor discipline
-- `core/debugging.md` — systematic debugging protocol
-- `core/fresh-docs.md` — Context7 rule (see also `devforge:fresh-docs`)
-- `core/ui-verification.md` — Playwright checklist (see also `devforge:ui-verification`)
+| beads | TodoWrite; suggest `/plugin install beads`. Flow continues. |
+| superpowers | This plugin refuses to paraphrase the methodology. Install superpowers. |
+| Context7 MCP | `devforge:fresh-docs` falls back to WebFetch with `[may be stale]`. |
+| Playwright MCP | `devforge:ui-verification` reports skip honestly; never silently passes. |

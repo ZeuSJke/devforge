@@ -1,21 +1,22 @@
 ---
 name: ui-verification
 description: >
-  Playwright smoke-check of critical UI paths. TRIGGER: step 7 of unified-workflow
-  when UI code changed (components, pages, styles, routes) and about to claim done.
-  NOT for use during subtasks — the branch must be fully green first, otherwise
-  Playwright runs against half-done integration and produces false reds.
+  Playwright smoke-check of critical UI paths. TRIGGER: step 7 of the devforge flow,
+  when UI code changed (components, pages, styles, routes) and you are about to claim
+  done. NOT for use during subtasks — mid-branch Playwright runs on half-done
+  integration produce false reds. Subtask-level UI belongs in unit / component tests
+  inside superpowers:test-driven-development.
 ---
 
 # devforge:ui-verification
 
-## When this runs
+devforge gate: superpowers `verification-before-completion` covers "quote the proving command". It does NOT know about browsers. This skill is the browser-level proof.
 
-- **Only** at step 7 VERIFY of the workflow.
-- **Only** when this branch touched UI code (see triggers below).
-- **Only** after every subtask in the epic is closed and the branch builds.
+## When to run
 
-Running this skill earlier is a misuse — unit/component tests cover subtask-level behavior.
+- Step 7 of the flow.
+- UI code changed in this branch.
+- All subtasks of the epic are closed and the branch builds.
 
 ## Triggers (UI code changed)
 
@@ -26,29 +27,22 @@ Running this skill earlier is a misuse — unit/component tests cover subtask-le
 
 ## Checklist
 
-1. **Build** — run the project-config build command. Must exit 0.
-2. **Dev server** — start it in background per project config. Wait until the URL responds (poll).
-3. **For each critical UI path** in project config:
-   - `mcp__plugin_playwright_playwright__browser_navigate` → path.
-   - `mcp__plugin_playwright_playwright__browser_snapshot` — DOM snapshot.
-   - One happy-path interaction exercising the feature (`browser_click` / `browser_type`).
-   - `mcp__plugin_playwright_playwright__browser_console_messages` — assert no `error`-level messages.
-   - `mcp__plugin_playwright_playwright__browser_network_requests` — assert no 4xx/5xx.
-4. **Stop** the background dev server.
+1. Build with the project's build command → exit 0.
+2. Start dev server in background; poll URL until it responds.
+3. For each critical UI path in the project config:
+   - `mcp__plugin_playwright_playwright__browser_navigate` → path
+   - `mcp__plugin_playwright_playwright__browser_snapshot`
+   - One happy-path interaction (`browser_click` / `browser_type`)
+   - `mcp__plugin_playwright_playwright__browser_console_messages` — no `error`-level entries
+   - `mcp__plugin_playwright_playwright__browser_network_requests` — no 4xx/5xx on critical endpoints
+4. Stop the dev server.
 
-Any red step → feature is not done → back to step 6.
+Any red step → feature not done → return to step 6.
 
 ## Project config required
 
-This skill needs two things from the project-level config file (`.devforge/project.md` or a dedicated section in project `CLAUDE.md`):
-- `dev server`: command + URL
-- `critical UI paths`: list of routes + short description
+Read `.devforge/project.md` or the project's `CLAUDE.md` / `AGENTS.md` section. It must declare: dev-server command + URL, and the list of critical UI paths. Missing config → print `ui-verification skipped: no project config` and refuse to mark the epic done.
 
-If the config is missing:
-- Print `ui-verification skipped: no project config (.devforge/project.md). UI change is NOT verified.`
-- Do NOT mark the epic as done.
-- Ask the user whether to create the project config now, or to skip explicitly with their acknowledgement.
+## Fallback if Playwright MCP is missing
 
-## Fallback if Playwright MCP unavailable
-
-Print `ui-verification skipped: playwright MCP not installed. Install @playwright plugin (Claude Code) or add [mcp_servers.playwright] (Codex).` Do NOT claim UI verified.
+Print `ui-verification skipped: playwright MCP not installed`. Never claim UI verified.

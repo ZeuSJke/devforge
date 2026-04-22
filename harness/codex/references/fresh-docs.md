@@ -1,29 +1,31 @@
-# Fresh docs — always query Context7 first
+# fresh-docs — Context7 gate
 
-LLM training data is stale. Libraries change APIs. Writing code from memory is the #1 source of silently wrong implementations.
+Superpowers does not cover library-docs lookup. This is devforge's responsibility.
 
-## The rule
+## Rule
 
-Before writing ANY code that uses an external library, framework, SDK, CLI, or cloud service:
+Before writing, modifying, or reviewing code that imports or calls into an external library, framework, SDK, CLI, or cloud service:
 
-1. `resolve-library-id` with the library name + the specific question.
-2. `query-docs` with the chosen library ID (`/org/project` format) and the full question.
-3. Write code against the returned docs.
+1. `mcp__…__resolve-library-id` with library name + the specific question.
+2. Pick the best `/org/project` match (higher trust score, higher snippet count, exact name match; version-specific IDs when version matters).
+3. `mcp__…__query-docs` with that ID and the full question (not a single keyword).
+4. Write code against the returned docs.
 
-Applies equally to well-known libraries (React, Next.js, Tailwind, Django, Spring Boot) and obscure ones. **Especially** to well-known libraries, because that is where the false sense of confidence lives.
+Applies to well-known libraries too — React, Next.js, Tailwind, Django, Spring Boot. Confidence in an API from training data is the most common source of silently wrong code.
 
 ## When to skip
 
-Only these cases:
 - Pure business logic with no external API surface.
-- Refactoring code you are not changing semantically.
+- Refactors that don't change semantics.
 - Debugging your own business logic.
-- General programming concepts unrelated to a specific library.
+- Language-level or general-programming questions.
 
-## Fallback if Context7 MCP is unavailable
+Everything else goes through Context7.
 
-Use `WebFetch` on the official documentation URL. Add an explicit note: `[warning: docs fetched via WebFetch, may be cached/stale]`. Do not rely on memory.
+## Fallback if MCP is unavailable
+
+`WebFetch` the official docs URL and label the output `[warning: fetched via WebFetch, may be stale]`. Do not fill in from memory.
 
 ## Tool names
 
-See `tools-map.md` for the per-harness MCP tool names (Claude Code vs Codex).
+See `tools-map.md` for the harness-specific MCP prefix (Claude Code vs Codex).
