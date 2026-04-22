@@ -1,0 +1,15 @@
+# devforge — Codex CLI config snippet.
+# Copy the sections below into ~/.codex/config.toml between the guard comments.
+# Re-running the copy is safe — just replace the block between the guards.
+
+# <!-- devforge:begin -->
+
+[mcp_servers.playwright]
+command = "npx"
+args = ["-y", "@playwright/mcp@latest"]
+
+[mcp_servers.context7]
+command = "npx"
+args = ["-y", "@upstash/context7-mcp@latest"]
+
+# <!-- devforge:end -->

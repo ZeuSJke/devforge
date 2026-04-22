@@ -1,0 +1,21 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "bd prime" },
+          { "type": "command", "command": "echo '[devforge] invoke devforge:unified-workflow before any task. flow: bd epic → brainstorm → plan → subtasks → TDD → verify → review → finish → bd close.'" }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "bd prime" }
+        ]
+      }
+    ]
+  }
+}

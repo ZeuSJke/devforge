@@ -1,0 +1,11 @@
+{
+  "name": "devforge-marketplace",
+  "description": "devforge plugin — unified dev workflow",
+  "plugins": [
+    {
+      "name": "devforge",
+      "source": "./",
+      "description": "Unified dev workflow: superpowers + beads + context7 + playwright"
+    }
+  ]
+}

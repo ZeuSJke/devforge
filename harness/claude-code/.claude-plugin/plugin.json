@@ -1,0 +1,7 @@
+{
+  "name": "devforge",
+  "description": "Unified development workflow: superpowers methodology + beads task tracking + context7 fresh docs + playwright UI-verification gate. Cross-harness (Claude Code + Codex).",
+  "version": "0.1.0",
+  "license": "MIT",
+  "keywords": ["workflow", "tdd", "superpowers", "beads", "context7", "playwright"]
+}
