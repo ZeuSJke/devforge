@@ -52,7 +52,7 @@ tools-map.md                  Claude Code ↔ Codex tool name mapping
 ## Install — Claude Code
 
 ```bash
-claude plugin marketplace add github:<owner>/devforge
+claude plugin marketplace add github:ZeuSJke/devforge
 claude plugin install devforge@devforge-marketplace
 /install-workflow      # idempotent: guards in ~/.claude/CLAUDE.md + merges settings.json
 /workflow-doctor       # check everything is wired up

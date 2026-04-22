@@ -1,15 +1,15 @@
 # devforge workflow — 9 steps
 
-Единая методология разработки. Повторяется на каждой задаче без исключений.
+Single development methodology. Applies to every task without exceptions.
 
 ## Mental model
 
-| Плагин | Роль |
+| Plugin | Role |
 |--|--|
-| beads | **WHAT** — что делать и в каком порядке |
-| superpowers | **HOW** — как работать (brainstorm, plan, TDD, debug, review) |
-| context7 | **WITH WHAT** — против каких свежих API пишем код |
-| playwright | **PROOF** — материальное доказательство, что UI работает перед merge |
+| beads | **WHAT** — tasks and their order |
+| superpowers | **HOW** — methodology (brainstorm, plan, TDD, debug, review) |
+| context7 | **WITH WHAT** — the current APIs we write against |
+| playwright | **PROOF** — material evidence that the UI works before merge |
 
 ## The flow
 
