@@ -5,7 +5,7 @@
     {
       "name": "devforge",
       "source": "./",
-      "description": "Unified dev workflow: superpowers + beads + context7 + playwright"
+      "description": "Glue between superpowers and beads: 9-step dispatch flow + session hooks"
     }
   ]
 }
