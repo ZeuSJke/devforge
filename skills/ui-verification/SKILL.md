@@ -29,12 +29,12 @@ devforge gate: superpowers `verification-before-completion` covers "quote the pr
 
 1. Build with the project's build command → exit 0.
 2. Start dev server in background; poll URL until it responds.
-3. For each critical UI path in the project config:
-   - `mcp__plugin_playwright_playwright__browser_navigate` → path
-   - `mcp__plugin_playwright_playwright__browser_snapshot`
+3. For each critical UI path in the project config, use the Playwright MCP (any prefix — `mcp__plugin_playwright_playwright__…`, `mcp__playwright__…`, etc. — Playwright injects its own tool descriptions):
+   - `browser_navigate` → path
+   - `browser_snapshot`
    - One happy-path interaction (`browser_click` / `browser_type`)
-   - `mcp__plugin_playwright_playwright__browser_console_messages` — no `error`-level entries
-   - `mcp__plugin_playwright_playwright__browser_network_requests` — no 4xx/5xx on critical endpoints
+   - `browser_console_messages` — no `error`-level entries
+   - `browser_network_requests` — no 4xx/5xx on critical endpoints
 4. Stop the dev server.
 
 Any red step → feature not done → return to step 6.

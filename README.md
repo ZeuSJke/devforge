@@ -1,12 +1,13 @@
 # devforge
 
-Claude Code plugin that orchestrates [superpowers](https://github.com/obra/superpowers) skills as a 9-step development flow and adds three gates superpowers does not cover:
+Claude Code plugin that orchestrates [superpowers](https://github.com/obra/superpowers) skills as a 9-step development flow and adds two things superpowers does not cover:
 
 - **beads** bookkeeping (`bd` CLI) — task creation, claim, close, dependencies.
-- **Context7** gate (`devforge:fresh-docs`) — query current docs before any external library use.
 - **Playwright** gate (`devforge:ui-verification`) — browser-level smoke check on step 7 when UI changed.
 
-devforge does not restate superpowers methodology. It only sequences its skills and fills the three gaps above.
+Library-docs lookup (Context7) is not in this list on purpose: when the Context7 MCP server is installed, it injects its own usage instructions into the session. devforge relies on that and does not duplicate it.
+
+devforge does not restate superpowers methodology, beads dependency semantics, or Context7 rules. It only sequences their skills and adds the Playwright gate.
 
 ## Flow
 
@@ -17,7 +18,7 @@ devforge does not restate superpowers methodology. It only sequences its skills 
 | 3 | Plan | `superpowers:writing-plans` |
 | 4 | Decompose | `bd create` per subtask + `bd dep add` |
 | 5 | Isolate | `superpowers:using-git-worktrees` |
-| 6 | Implement (per subtask) | `superpowers:test-driven-development`; `devforge:fresh-docs` before any external library use |
+| 6 | Implement (per subtask) | `superpowers:test-driven-development`; Context7's own injection handles library docs |
 | 6b | On failure | `superpowers:systematic-debugging` |
 | 7 | Verify | `superpowers:verification-before-completion` + `devforge:ui-verification` if UI changed |
 | 8 | Review | `superpowers:requesting-code-review` / `receiving-code-review` |
@@ -28,7 +29,7 @@ devforge does not restate superpowers methodology. It only sequences its skills 
 ```
 .claude-plugin/     plugin.json, marketplace.json
 CLAUDE.md           appended to ~/.claude/CLAUDE.md by /install-workflow
-skills/             unified-workflow, fresh-docs, ui-verification
+skills/             unified-workflow, ui-verification
 commands/           install-workflow, workflow-doctor, ui-smoke
 settings.example.json   SessionStart + PreCompact hooks (project-gated)
 ```
@@ -47,9 +48,9 @@ Restart the session after `/install-workflow` for hooks to load.
 ## Prerequisites
 
 - [superpowers](https://github.com/obra/superpowers) plugin — methodology is invoked from here.
-- [beads](https://github.com/steveyegge/beads) plugin — provides the `bd` CLI.
-- Context7 MCP server — for `devforge:fresh-docs`.
-- Playwright MCP server — for `devforge:ui-verification`.
+- [beads](https://github.com/steveyegge/beads) plugin — provides the `bd` CLI and dependency semantics.
+- Context7 MCP server — library-docs lookup. Context7 injects its own usage instructions when installed; devforge relies on that and does not duplicate it.
+- Playwright MCP server — required for `devforge:ui-verification`.
 
 `/workflow-doctor` reports missing pieces with remediation steps.
 
@@ -92,7 +93,7 @@ Without this file: `verification-before-completion` asks for the test command; `
 |--|--|
 | beads | TodoWrite fallback; flow continues. |
 | superpowers | devforge refuses to paraphrase — install superpowers. |
-| Context7 MCP | `fresh-docs` uses WebFetch with `[may be stale]` label. |
+| Context7 MCP | Flagged by `/workflow-doctor`; Claude falls back to WebFetch / training data. |
 | Playwright MCP | `ui-verification` reports `skipped: playwright MCP unavailable`. |
 
 ## License
