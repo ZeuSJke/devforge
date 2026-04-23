@@ -1,6 +1,8 @@
 # devforge — unified dev workflow
 
-Before starting ANY task, invoke `devforge:unified-workflow`. It is a dispatch table: each step of the flow points to the superpowers skill that owns the discipline for that step. devforge does NOT restate superpowers — it sequences its skills and adds beads / Context7 / Playwright where superpowers has no coverage.
+**Opt-in per project.** This section applies only in projects that contain a `.devforge/project.md` file at their root. In any other project, ignore this section and follow that project's own methodology / CLAUDE.md.
+
+Before starting any task in a devforge-enabled project, invoke `devforge:unified-workflow`. It is a dispatch table: each step of the flow points to the superpowers skill that owns the discipline for that step. devforge does NOT restate superpowers — it sequences its skills and adds beads / Context7 / Playwright where superpowers has no coverage.
 
 ## Flow (do not skip; each cell is an invocation)
 
@@ -19,8 +21,8 @@ Before starting ANY task, invoke `devforge:unified-workflow`. It is a dispatch t
 
 ## What devforge itself owns (everything else is superpowers)
 
-- **beads bookkeeping** — `bd create / claim / close / dep add`, and the `bd prime` hooks.
-- **Context7 gate** (`devforge:fresh-docs`) — invoke before any external library use.
+- **beads bookkeeping** — `bd create / claim / close / dep add`, and the `bd prime` hooks (project-gated — run only when `.devforge/project.md` exists).
+- **Context7 gate** (`devforge:fresh-docs`) — invoke before any external library use in a devforge project.
 - **Playwright gate** (`devforge:ui-verification`) — invoke on step 7 when UI code changed.
 
 If superpowers is not installed, install it — this plugin is an orchestrator, not a replacement.

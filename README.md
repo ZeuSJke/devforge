@@ -69,6 +69,17 @@ Two copy-paste steps, fully documented in [`harness/codex/INSTALL.md`](harness/c
 
 That's it — no shell installer, no remote execution. Uninstall = delete the blocks.
 
+## Scoping — per-project opt-in
+
+devforge installs globally (hooks in `~/.claude/settings.json`, block in `~/.claude/CLAUDE.md`) but **activates only in projects that contain `.devforge/project.md`**. Non-devforge projects are untouched:
+
+- SessionStart and PreCompact hooks wrap their commands in `test -f .devforge/project.md && … || true` — silent no-op elsewhere.
+- The global CLAUDE.md block opens with "applies only when `.devforge/project.md` exists".
+- The `unified-workflow` skill's description states the same opt-in rule.
+
+Enable devforge in a project: create `.devforge/project.md` (see below).
+Disable temporarily: rename the file (`.devforge/project.md.off`). The plugin goes silent; no edits to global settings needed.
+
 ## Project-level config
 
 devforge is project-agnostic but needs to know two things per repo:

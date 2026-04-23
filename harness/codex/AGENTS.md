@@ -1,5 +1,7 @@
 # devforge — unified dev workflow (Codex edition)
 
+**Opt-in per project.** This flow applies only in projects that contain a `.devforge/project.md` file at their root. In any other project, ignore this file and follow that project's own methodology.
+
 This file is a dispatch table, not a methodology. Each step invokes the corresponding superpowers skill — superpowers owns the discipline. devforge adds only three things: beads bookkeeping, a Context7 gate, and a Playwright UI gate.
 
 ## Flow

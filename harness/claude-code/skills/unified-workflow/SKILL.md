@@ -1,15 +1,18 @@
 ---
 name: unified-workflow
 description: >
-  Dispatch table for the devforge flow. TRIGGER: at session start, before any task, or
-  whenever the next step is unclear. Maps each step to the superpowers skill that owns
-  the discipline for that step, plus beads bookkeeping and devforge's two add-on gates
-  (fresh-docs, ui-verification). Does NOT restate superpowers methodology.
+  Dispatch table for the devforge flow. Opt-in per project: activates only when a
+  `.devforge/project.md` file exists in the current project root. TRIGGER: at session
+  start or before any task in a devforge-enabled project. Maps each step to the
+  superpowers skill that owns its discipline, plus beads bookkeeping and devforge's
+  two add-on gates (fresh-docs, ui-verification). Does NOT restate superpowers.
 ---
 
 # devforge:unified-workflow
 
 This skill is a dispatcher, not a methodology. Each step invokes a superpowers skill; superpowers owns the discipline. devforge only contributes beads bookkeeping and two gates (fresh-docs, ui-verification) that cover ground superpowers does not.
+
+**Opt-in per project.** Before applying the flow, check that `.devforge/project.md` exists at the project root. If it does not: this flow does not apply — follow the project's own methodology instead.
 
 ## Flow
 
