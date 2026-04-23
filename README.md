@@ -1,115 +1,99 @@
 # devforge
 
-Unified development workflow across harnesses. One methodology, two installation paths.
+Claude Code plugin that orchestrates [superpowers](https://github.com/obra/superpowers) skills as a 9-step development flow and adds three gates superpowers does not cover:
 
-Combines:
+- **beads** bookkeeping (`bd` CLI) — task creation, claim, close, dependencies.
+- **Context7** gate (`devforge:fresh-docs`) — query current docs before any external library use.
+- **Playwright** gate (`devforge:ui-verification`) — browser-level smoke check on step 7 when UI changed.
 
-- **[superpowers](https://github.com/obra/superpowers)** — TDD, brainstorming, systematic debugging, code review.
-- **[beads](https://github.com/steveyegge/beads)** — task tracking across sessions.
-- **[Context7](https://github.com/upstash/context7)** — current library docs on demand.
-- **[Playwright MCP](https://github.com/microsoft/playwright-mcp)** — browser-level proof that the UI actually works.
+devforge does not restate superpowers methodology. It only sequences its skills and fills the three gaps above.
 
-Mental model:
+## Flow
 
-| Plugin | Role |
-|--|--|
-| beads | **WHAT** — tasks & order |
-| superpowers | **HOW** — methodology |
-| context7 | **WITH WHAT** — current APIs |
-| playwright | **PROOF** — UI works, not just compiles |
-
-## The flow
-
-```
-1. EPIC       → bd create -t epic "Goal"
-2. BRAINSTORM → superpowers:brainstorming
-3. PLAN       → superpowers:writing-plans (2–5 min subtasks)
-4. SUBTASKS   → bd create + bd dep add
-5. ISOLATE    → git worktree for non-trivial work
-6. IMPLEMENT  → TDD RED → GREEN → REFACTOR → commit → bd close
-7. VERIFY     → run proving command + ui-verification if UI changed
-8. REVIEW     → superpowers:requesting-code-review
-9. FINISH     → close the branch → bd close <epic-id>
-```
-
-**Playwright runs only on step 7** when UI code changed. Not during subtasks — a half-done branch cannot be browser-tested meaningfully.
+| # | Step | Invoke |
+|--|--|--|
+| 1 | Create epic | `bd create -t epic "<goal>"` |
+| 2 | Brainstorm | `superpowers:brainstorming` |
+| 3 | Plan | `superpowers:writing-plans` |
+| 4 | Decompose | `bd create` per subtask + `bd dep add` |
+| 5 | Isolate | `superpowers:using-git-worktrees` |
+| 6 | Implement (per subtask) | `superpowers:test-driven-development`; `devforge:fresh-docs` before any external library use |
+| 6b | On failure | `superpowers:systematic-debugging` |
+| 7 | Verify | `superpowers:verification-before-completion` + `devforge:ui-verification` if UI changed |
+| 8 | Review | `superpowers:requesting-code-review` / `receiving-code-review` |
+| 9 | Finish | `superpowers:finishing-a-development-branch`; then `bd close <epic-id>` |
 
 ## Layout
 
 ```
-core/                         platform-agnostic source of truth
-  workflow.md (dispatch table) · fresh-docs.md (Context7 gate) · ui-verification.md (Playwright gate)
-
-harness/
-  claude-code/                Claude Code plugin + installer
-    .claude-plugin/ · CLAUDE.md · skills/ · commands/ · settings.example.json
-  codex/                      Codex CLI — copy-paste install, no scripts
-    AGENTS.md · references/ · config.example.toml · INSTALL.md
-
-tools-map.md                  Claude Code ↔ Codex tool name mapping
+.claude-plugin/     plugin.json, marketplace.json
+CLAUDE.md           appended to ~/.claude/CLAUDE.md by /install-workflow
+skills/             unified-workflow, fresh-docs, ui-verification
+commands/           install-workflow, workflow-doctor, ui-smoke
+settings.example.json   SessionStart + PreCompact hooks (project-gated)
 ```
 
-## Install — Claude Code
+## Install
 
 ```bash
 claude plugin marketplace add ZeuSJke/devforge
 claude plugin install devforge@devforge-marketplace
-/install-workflow      # idempotent: guards in ~/.claude/CLAUDE.md + merges settings.json
-/workflow-doctor       # check everything is wired up
+/install-workflow      # idempotent: guards in ~/.claude/CLAUDE.md, merges settings.json
+/workflow-doctor       # check beads, superpowers, Context7 MCP, Playwright MCP
 ```
 
-Restart the session. Hooks run `bd prime` + a one-line reminder each SessionStart and before PreCompact.
+Restart the session after `/install-workflow` for hooks to load.
 
-## Install — Codex CLI
+## Prerequisites
 
-Two copy-paste steps, fully documented in [`harness/codex/INSTALL.md`](harness/codex/INSTALL.md):
+- [superpowers](https://github.com/obra/superpowers) plugin — methodology is invoked from here.
+- [beads](https://github.com/steveyegge/beads) plugin — provides the `bd` CLI.
+- Context7 MCP server — for `devforge:fresh-docs`.
+- Playwright MCP server — for `devforge:ui-verification`.
 
-1. Paste `harness/codex/AGENTS.md` into `~/.codex/instructions.md` (or a project `AGENTS.md`) between `<!-- devforge:begin --> / <!-- devforge:end -->` guards.
-2. Paste `harness/codex/config.example.toml` into `~/.codex/config.toml` between the same guards.
+`/workflow-doctor` reports missing pieces with remediation steps.
 
-That's it — no shell installer, no remote execution. Uninstall = delete the blocks.
+## Scope — per-project opt-in
 
-## Scoping — per-project opt-in
+devforge installs globally but activates only in projects containing `.devforge/project.md`.
 
-devforge installs globally (hooks in `~/.claude/settings.json`, block in `~/.claude/CLAUDE.md`) but **activates only in projects that contain `.devforge/project.md`**. Non-devforge projects are untouched:
+- Hooks wrap commands in `test -f .devforge/project.md && … || true` — silent no-op elsewhere.
+- CLAUDE.md block and `unified-workflow` skill open with "applies only when `.devforge/project.md` exists".
 
-- SessionStart and PreCompact hooks wrap their commands in `test -f .devforge/project.md && … || true` — silent no-op elsewhere.
-- The global CLAUDE.md block opens with "applies only when `.devforge/project.md` exists".
-- The `unified-workflow` skill's description states the same opt-in rule.
+Enable in a project: create `.devforge/project.md`.
+Disable temporarily: rename to `.devforge/project.md.off`.
+Remove entirely: delete the blocks between `<!-- devforge:begin --> … <!-- devforge:end -->` in `~/.claude/CLAUDE.md` and `~/.claude/settings.json`.
 
-Enable devforge in a project: create `.devforge/project.md` (see below).
-Disable temporarily: rename the file (`.devforge/project.md.off`). The plugin goes silent; no edits to global settings needed.
+## Project config format
 
-## Project-level config
+`.devforge/project.md`:
 
-devforge is project-agnostic but needs to know two things per repo:
+```md
+## Test commands
+- unit: pnpm test
+- build: pnpm build
+- lint: pnpm lint
 
-- Which commands run tests / build / dev-server.
-- Which UI paths are critical enough to smoke-test with Playwright.
+## Dev server
+- command: pnpm dev
+- url: http://localhost:3000
 
-Declare these in `./.devforge/project.md` at the project root, or as a `## devforge project config` section in the project's `CLAUDE.md` / `AGENTS.md`. See [`core/ui-verification.md`](core/ui-verification.md) for the required shape. Without this file:
+## Critical UI paths
+- /login     — login happy path
+- /checkout  — one-item checkout
+- /dashboard — widgets render
+```
 
-- `verification-before-completion` asks you for the test command before claiming done.
-- `ui-verification` skips honestly with `ui-verification skipped: no project config`. It does **not** silently pass.
+Without this file: `verification-before-completion` asks for the test command; `ui-verification` skips honestly (never silently passes).
 
 ## Graceful degradation
 
-| Missing | Fallback |
+| Missing | Behavior |
 |--|--|
-| beads | Use TodoWrite; flow still works. |
-| superpowers | Plan-mode + AskUserQuestion for brainstorm. |
-| Context7 MCP | WebFetch official docs, labelled `[may be stale]`. |
-| Playwright MCP | `ui-verification` skipped honestly — epic cannot be closed with silent pass. |
-
-## What we deliberately left out
-
-- **413 specialist agent templates** (from template-bridge). Out of scope — pulls in another ecosystem and dilutes the discipline. This plugin is a methodology, not a catalog.
-- **Gemini CLI harness.** Planned, not built.
-- **`curl | bash` installers for Codex.** The plugin is markdown + TOML. You should see exactly what you paste into your config. A shell runner for this would be overkill and a supply-chain risk for zero benefit.
-
-## Credits & inspiration
-
-Architecture inspired by [template-bridge](https://github.com/maslennikov-ig/template-bridge) (three-layer protection pattern). Methodology from [superpowers](https://github.com/obra/superpowers). Task model from [beads](https://github.com/steveyegge/beads).
+| beads | TodoWrite fallback; flow continues. |
+| superpowers | devforge refuses to paraphrase — install superpowers. |
+| Context7 MCP | `fresh-docs` uses WebFetch with `[may be stale]` label. |
+| Playwright MCP | `ui-verification` reports `skipped: playwright MCP unavailable`. |
 
 ## License
 

@@ -1,0 +1,7 @@
+{
+  "name": "devforge",
+  "description": "Orchestrates superpowers skills as a 9-step flow and adds beads task tracking, Context7 docs gate, and Playwright UI-verification gate. Per-project opt-in via .devforge/project.md.",
+  "version": "0.1.0",
+  "license": "MIT",
+  "keywords": ["workflow", "tdd", "superpowers", "beads", "context7", "playwright"]
+}
